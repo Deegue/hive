@@ -113,6 +113,7 @@ import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.parse.ColumnAccessInfo;
 import org.apache.hadoop.hive.ql.parse.ExplainConfiguration.AnalyzeState;
+import org.apache.hadoop.hive.ql.parse.ExplainSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.parse.HiveSemanticAnalyzerHookContext;
 import org.apache.hadoop.hive.ql.parse.HiveSemanticAnalyzerHookContextImpl;
 import org.apache.hadoop.hive.ql.parse.ImportSemanticAnalyzer;
@@ -663,6 +664,12 @@ public class Driver implements IDriver {
         hookRunner.runPostAnalyzeHooks(hookCtx, sem.getAllRootTasks());
       }
 
+      //        System.out.println("SSSSSS:hookCtx.setUserName(userName):" + userName);
+      //        System.out.println("SSSSSS:hookCtx.setIpAddress(SessionState.get().getUserIpAddress()):" + SessionState.get().getUserIpAddress());
+      HiveClientCache.userNameCache = SessionState.get().getAuthenticator().getUserName();
+      //        System.out.println("SSSSSS:HiveClientCache.userNameCache:" + HiveClientCache.userNameCache);
+      hookCtx.setUserName(HiveClientCache.userNameCache);
+
       LOG.info("Semantic Analysis Completed (retrial = {})", retrial);
 
       // Retrieve information about cache usage for the query.
@@ -689,10 +696,33 @@ public class Driver implements IDriver {
         plan.getFetchTask().initialize(queryState, plan, null, ctx.getOpContext());
       }
 
-      //do the authorization check
-      if (!sem.skipAuthorization() &&
-          HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)) {
+      boolean isAdmin = false;
+      try {
+//        System.out.println("SSSSSS:auth-Driver");
+        String name;
+        SessionState ss = SessionState.get();
+        if (userName == null) {
+          name = ss.getAuthenticator().getUserName();
+        } else {
+          name = userName;
+        }
+//        System.out.println("SSSSSS:current session user name:" + name);
+        if (name != null &&
+          (name.toLowerCase().equals("dpedw") ||
+          name.toLowerCase().equals("root"))) {
+          isAdmin = true;
+//          System.out.println("SSSSSS:user:" + name + " is admin.");
+        } else {
+//          System.out.println("SSSSSS:user:" + name + " is not admin!");
+        }
+      } catch (Exception e) {
+//        System.out.println("SSSSSS:判断是否为超级管理员异常!!!");
+        e.printStackTrace();
+      }
 
+      //do the authorization check
+      if (!sem.skipAuthorization() && !isAdmin &&
+          HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)) {
         try {
           perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.DO_AUTHORIZATION);
           doAuthorization(queryState.getHiveOperation(), sem, command);
@@ -705,6 +735,8 @@ public class Driver implements IDriver {
         } finally {
           perfLogger.PerfLogEnd(CLASS_NAME, PerfLogger.DO_AUTHORIZATION);
         }
+      } else {
+//        System.out.println("SSSSSS:authorization skipped.");
       }
 
       if (conf.getBoolVar(ConfVars.HIVE_LOG_EXPLAIN_OUTPUT)) {
@@ -1051,6 +1083,7 @@ public class Driver implements IDriver {
     Set<WriteEntity> outputs = Sets.union(sem.getOutputs(), additionalOutputs);
 
     if (ss.isAuthorizationModeV2()) {
+//      System.out.println("SSSSSS:isAuthorizationModeV2");
       // get mapping of tables to columns used
       ColumnAccessInfo colAccessInfo = sem.getColumnAccessInfo();
       // colAccessInfo is set only in case of SemanticAnalyzer
@@ -1239,11 +1272,18 @@ public class Driver implements IDriver {
     // (par2Cols) or
     // table to columns mapping (tab2Cols)
     if (op.equals(HiveOperation.CREATETABLE_AS_SELECT) || op.equals(HiveOperation.QUERY)) {
-      SemanticAnalyzer querySem = (SemanticAnalyzer) sem;
-      ParseContext parseCtx = querySem.getParseContext();
+      ParseContext parseCtx;
+      if (sem instanceof ExplainSemanticAnalyzer) {
+//        System.out.println("SSSSSS:ExplainSemanticAnalyzer");
+        parseCtx = ((ExplainSemanticAnalyzer)sem).getParseContext();
+      } else {
+//        System.out.println("SSSSSS:SemanticAnalyzer");
+        parseCtx = ((SemanticAnalyzer)sem).getParseContext();
+      }
 
-      for (Map.Entry<String, TableScanOperator> topOpMap : querySem.getParseContext().getTopOps()
+      for (Map.Entry<String, TableScanOperator> topOpMap : parseCtx.getTopOps()
           .entrySet()) {
+//        System.out.println("SSSSSS:parseCtx.getTopOps()");
         TableScanOperator tableScanOp = topOpMap.getValue();
         if (!tableScanOp.isInsideView()) {
           Table tbl = tableScanOp.getConf().getTableMetadata();
@@ -2598,11 +2638,14 @@ public class Driver implements IDriver {
       //here we assume that upstream code may have parametrized the msg from ErrorMsg
       //so we want to keep it
       errorMessage += ". " + downstreamError.getMessage();
+//      errorMessage += "\nAAAAAA downstreamError.printStackTrace():";
+//      downstreamError.printStackTrace();
     }
     else {
       ErrorMsg em = ErrorMsg.getErrorMsg(exitVal);
       if (em != null) {
         errorMessage += ". " +  em.getMsg();
+        errorMessage += "\nAAAAAA em:" + em;
       }
     }
   }

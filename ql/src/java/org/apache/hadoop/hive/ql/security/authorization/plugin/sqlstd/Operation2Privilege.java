@@ -339,6 +339,7 @@ public class Operation2Privilege {
 (SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.SHOW_TBLPROPERTIES, PrivRequirement.newIOPrivRequirement
 (SEL_NOGRANT_AR, null));
+    // 我们在建表时不需要执行者对库拥有owner权限?
     op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, PrivRequirement.newPrivRequirementList(
         new PrivRequirement(SEL_NOGRANT_AR, IOType.INPUT),
         new PrivRequirement(INS_SEL_DEL_NOGRANT_AR, HivePrivilegeObjectType.DFS_URI),
@@ -413,6 +414,7 @@ public class Operation2Privilege {
 (null, null));
 
     // require db ownership, if there is a file require SELECT , INSERT, and DELETE
+    // 我们在建表时不需要执行者对库拥有owner权限?
     op2Priv.put(HiveOperationType.CREATETABLE, PrivRequirement.newPrivRequirementList(
         new PrivRequirement(INS_SEL_DEL_NOGRANT_AR, IOType.INPUT),
         new PrivRequirement(OWNER_PRIV_AR, HivePrivilegeObjectType.DATABASE)));

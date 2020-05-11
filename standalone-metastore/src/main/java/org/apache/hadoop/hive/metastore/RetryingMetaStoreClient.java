@@ -68,7 +68,7 @@ public class RetryingMetaStoreClient implements InvocationHandler {
   private final long connectionLifeTimeInMillis;
   private long lastConnectionTime;
   private boolean localMetaStore;
-
+  private final int initTableLimit;
 
   protected RetryingMetaStoreClient(Configuration conf, Class<?>[] constructorArgTypes,
                                     Object[] constructorArgs, ConcurrentHashMap<String, Long> metaCallTimeMap,
@@ -89,6 +89,7 @@ public class RetryingMetaStoreClient implements InvocationHandler {
     this.lastConnectionTime = System.currentTimeMillis();
     String msUri = MetastoreConf.getVar(conf, ConfVars.THRIFT_URIS);
     localMetaStore = (msUri == null) || msUri.trim().isEmpty();
+    this.initTableLimit = conf.getInt("hive.server2.init.load.table.limit", -1);
 
     reloginExpiringKeytabUser();
 
@@ -154,7 +155,10 @@ public class RetryingMetaStoreClient implements InvocationHandler {
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    Object ret;
+
+    LOG.warn("SSSSSS:enter invoke");
+
+    Object ret = null;
     int retriesMade = 0;
     TException caughtException;
 
@@ -169,7 +173,9 @@ public class RetryingMetaStoreClient implements InvocationHandler {
       }
     }
 
-    while (true) {
+    LOG.warn("SSSSSS:invoke p1");
+
+    for (int i = 0;;i++) {
       try {
         reloginExpiringKeytabUser();
 
@@ -203,6 +209,24 @@ public class RetryingMetaStoreClient implements InvocationHandler {
             }
           }
         }
+
+        LOG.warn("SSSSSS:getMethodString(method):" + getMethodString(method));
+        LOG.warn("SSSSSS:base:" + base);
+        LOG.warn("SSSSSS:args:" + args);
+        int maxTableNum = 0;
+        if (args != null) {
+          for (Object o : args) {
+            int len = o.toString().split(",").length;
+            if (maxTableNum < len) {
+              maxTableNum = len;
+            }
+          }
+        }
+
+        if (initTableLimit != -1 && maxTableNum > initTableLimit){
+          break;
+        }
+
 
         if (metaCallTimeMap == null) {
           ret = method.invoke(base, args);
@@ -249,11 +273,15 @@ public class RetryingMetaStoreClient implements InvocationHandler {
         }
       }
 
+      LOG.warn("SSSSSS:invoke p2");
 
       if (retriesMade >= retryLimit || base.isLocalMetaStore() || !allowRetry) {
         throw caughtException;
       }
       retriesMade++;
+
+            LOG.warn("SSSSSS:invoke p3");
+
       LOG.warn("MetaStoreClient lost connection. Attempting to reconnect (" + retriesMade + " of " +
           retryLimit + ") after " + retryDelaySeconds + "s. " + method.getName(), caughtException);
       Thread.sleep(retryDelaySeconds * 1000);

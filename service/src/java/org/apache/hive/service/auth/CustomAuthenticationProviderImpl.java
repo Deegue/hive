@@ -32,26 +32,36 @@ import org.apache.hadoop.util.ReflectionUtils;
  */
 public class CustomAuthenticationProviderImpl implements PasswdAuthenticationProvider {
 
-  private final PasswdAuthenticationProvider customProvider;
+  private PasswdAuthenticationProvider customProvider = null;
 
   @SuppressWarnings("unchecked")
   CustomAuthenticationProviderImpl(HiveConf conf) {
-    Class<? extends PasswdAuthenticationProvider> customHandlerClass =
-      (Class<? extends PasswdAuthenticationProvider>) conf.getClass(
-        HiveConf.ConfVars.HIVE_SERVER2_CUSTOM_AUTHENTICATION_CLASS.varname,
-        PasswdAuthenticationProvider.class);
-    PasswdAuthenticationProvider customProvider;
     try {
-      customProvider = customHandlerClass.getConstructor(HiveConf.class).newInstance(conf);
-    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-      customProvider = ReflectionUtils.newInstance(customHandlerClass, conf);
+//      System.out.println("SSSSSS:enter CustomAuthenticationProviderImpl");
+      Class<? extends PasswdAuthenticationProvider> customHandlerClass =
+              (Class<? extends PasswdAuthenticationProvider>) conf.getClass(
+                      HiveConf.ConfVars.HIVE_SERVER2_CUSTOM_AUTHENTICATION_CLASS.varname,
+                      PasswdAuthenticationProvider.class);
+//      System.out.println("SSSSSS:customHandlerClass:" + customHandlerClass);
+      PasswdAuthenticationProvider customProvider;
+      try {
+        customProvider = customHandlerClass.getConstructor(HiveConf.class).newInstance(conf);
+      } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        customProvider = ReflectionUtils.newInstance(customHandlerClass, conf);
+      }
+//      System.out.println("SSSSSS:customProvider:" + customProvider);
+      this.customProvider = customProvider;
+    } catch (Exception e) {
+//      System.out.println("SSSSSS:CustomAuthenticationProviderImpl throw exception.");
+      e.printStackTrace();
     }
-    this.customProvider = customProvider;
   }
 
   @Override
   public void Authenticate(String user, String password) throws AuthenticationException {
+//    System.out.println("SSSSSS:begin Authenticate，user:" + user + ";password:" + password);
     customProvider.Authenticate(user, password);
+//    System.out.println("SSSSSS:end Authenticate");
   }
 
 }

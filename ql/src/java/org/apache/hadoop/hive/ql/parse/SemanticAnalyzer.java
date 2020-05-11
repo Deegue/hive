@@ -10101,10 +10101,45 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       return;
     }
 
+    // cache table column name and type
+    Map<String, String> tableCol = new HashMap<>();
     // make array with QBJoinTree : outer most(0) --> inner most(n)
     List<QBJoinTree> trees = new ArrayList<QBJoinTree>();
     for (;tree != null; tree = tree.getJoinSrc()) {
       trees.add(tree);
+      try {
+        Map aliasToOpInfo = tree.getAliasToOpInfo();
+        for (String key : tree.getAliasToOpInfo().keySet()) {
+          for (ColumnInfo columnInfo : ((SelectOperator) aliasToOpInfo.get(key)).getSchema().getSignature()) {
+            tableCol.put(columnInfo.getTabAlias() + "." + columnInfo.getAlias(), columnInfo.getTypeName());
+          }
+        }
+      } catch (Exception e) {
+        LOG.error("SSSSSS:merge joins throw exceptions:");
+        e.printStackTrace();
+      }
+    }
+
+    try {
+      // both sides of the join should be the same type
+      for (QBJoinTree joinTree : trees) {
+        if (!(joinTree.getExpressions().size() == 2)
+                || !(joinTree.getExpressions().get(0).get(0).getChildren().size() == 2)
+                || !"TOK_TABLE_OR_COL".equals(joinTree.getExpressions().get(0).get(0).getChildren().get(0).toString())) {
+          break;
+        }
+        String key1 = joinTree.getExpressions().get(0).get(0).getChildren().get(0).getChildren().get(0).toString()
+                + "." + joinTree.getExpressions().get(0).get(0).getChildren().get(1);
+        String key2 = joinTree.getExpressions().get(1).get(0).getChildren().get(0).getChildren().get(0).toString()
+                + "." + joinTree.getExpressions().get(1).get(0).getChildren().get(1);
+        if (tableCol.get(key1) != tableCol.get(key2)) {
+          LOG.error("SSSSSS:tableCol.get(key1):" + tableCol.get(key1) + " is not match tableCol.get(key2):" + tableCol.get(key2));
+          return;
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("SSSSSS:merge joins throw exceptions:");
+      e.printStackTrace();
     }
 
     // merging from 'target'(inner) to 'node'(outer)

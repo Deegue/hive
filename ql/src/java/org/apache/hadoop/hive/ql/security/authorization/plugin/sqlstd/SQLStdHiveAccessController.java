@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -183,8 +184,10 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     PrivilegeBag privBag = SQLAuthorizationUtils.getThriftPrivilegesBag(hivePrincipals, hivePrivileges, hivePrivObject,
         grantorPrincipal, grantOption);
     try {
+//      System.out.println("222222:privBag:" + privBag);
       metastoreClient.grant_privileges(privBag);
     } catch (Exception e) {
+      e.printStackTrace();
       throw SQLAuthorizationUtils.getPluginException("Error granting privileges", e);
     }
   }
@@ -208,8 +211,9 @@ public class SQLStdHiveAccessController implements HiveAccessController {
 
   private List<HivePrivilege> expandAllPrivileges(List<HivePrivilege> hivePrivileges) {
     Set<HivePrivilege> hivePrivSet = new HashSet<HivePrivilege>();
+//    System.out.println("222222:expand to all supported privileges,hivePrivileges:" + hivePrivileges);
     for (HivePrivilege hivePrivilege : hivePrivileges) {
-      if (hivePrivilege.getName().equals(ALL)) {
+      if (hivePrivilege.getName().toUpperCase(Locale.US).equals(ALL)) {
         // expand to all supported privileges
         for (SQLPrivilegeType privType : SQLPrivilegeType.values()) {
           hivePrivSet.add(new HivePrivilege(privType.name(), hivePrivilege.getColumns()));

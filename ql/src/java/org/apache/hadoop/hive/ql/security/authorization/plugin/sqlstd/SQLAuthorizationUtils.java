@@ -66,6 +66,7 @@ import org.apache.thrift.TException;
 public class SQLAuthorizationUtils {
 
   private static final String[] SUPPORTED_PRIVS = { "INSERT", "UPDATE", "DELETE", "SELECT" };
+  private static final String ALL = "ALL";
   private static final Set<String> SUPPORTED_PRIVS_SET = new HashSet<String>(
       Arrays.asList(SUPPORTED_PRIVS));
   public static final Logger LOG = LoggerFactory.getLogger(SQLAuthorizationUtils.class);
@@ -203,10 +204,15 @@ public class SQLAuthorizationUtils {
       throwGetPrivErr(e, hivePrivObject, userName);
     }
 
+//    System.out.println("SSSSSS:thrifPrivs.getUserPrivileges1:" + thrifPrivs.getUserPrivileges());
+//    System.out.println("SSSSSS:thrifPrivs.getRolePrivileges1:" + thrifPrivs.getRolePrivileges());
     filterPrivsByCurrentRoles(thrifPrivs, curRoles);
+//    System.out.println("SSSSSS:thrifPrivs.getUserPrivileges2:" + thrifPrivs.getUserPrivileges());
+//    System.out.println("SSSSSS:thrifPrivs.getRolePrivileges2:" + thrifPrivs.getRolePrivileges());
 
     // convert to RequiredPrivileges
     RequiredPrivileges privs = getRequiredPrivsFromThrift(thrifPrivs);
+//    System.out.println("SSSSSS:privs.getRequiredPrivilegeSet:" + privs.getRequiredPrivilegeSet());
 
     // add owner privilege if user is owner of the object
     if (isOwner(metastoreClient, userName, curRoles, hivePrivObject)) {
@@ -215,6 +221,22 @@ public class SQLAuthorizationUtils {
     if (isAdmin) {
       privs.addPrivilege(SQLPrivTypeGrant.ADMIN_PRIV);
     }
+
+    // expand to all supported privileges
+//    if (privs != null) {
+//      System.out.println("111111:expand to all supported privileges，" +
+//              "privs.getRequiredPrivilegeSet():" + privs.getRequiredPrivilegeSet());
+//      for (SQLPrivTypeGrant requiredPriv : privs.getRequiredPrivilegeSet()) {
+//        System.out.println("AAAAAA requiredPriv.getPrivType().toString():" + requiredPriv.getPrivType().toString());
+//        if (requiredPriv.getPrivType().toString().equals(ALL)) {
+//          for (SQLPrivilegeType privType : SQLPrivilegeType.values()) {
+//            privs.addPrivilege(privType.name(), true);
+//          }
+//        }
+//      }
+//    } else {
+//      System.out.println("111111:privs is null");
+//    }
 
     return privs;
   }
@@ -349,8 +371,21 @@ public class SQLAuthorizationUtils {
     }
     for (Map.Entry<String, List<PrivilegeGrantInfo>> userPriv : availPrivs.entrySet()) {
       List<PrivilegeGrantInfo> userPrivGInfos = userPriv.getValue();
-      for (PrivilegeGrantInfo userPrivGInfo : userPrivGInfos) {
-        reqPrivs.addPrivilege(userPrivGInfo.getPrivilege(), userPrivGInfo.isGrantOption());
+      if (userPrivGInfos != null) {
+//        System.out.println("333333:expand to all supported privileges,userPrivGInfos:" + userPrivGInfos);
+        for (PrivilegeGrantInfo userPrivGInfo : userPrivGInfos) {
+          if (userPrivGInfo.getPrivilege().toUpperCase(Locale.US).equals(ALL)) {
+            // expand to all supported privileges
+            for (SQLPrivilegeType privType : SQLPrivilegeType.values()) {
+              reqPrivs.addPrivilege(privType.name(), true);
+            }
+          } else {
+            reqPrivs.addPrivilege(userPrivGInfo.getPrivilege(), true);
+//            reqPrivs.addPrivilege(userPrivGInfo.getPrivilege(), userPrivGInfo.isGrantOption());
+          }
+        }
+      } else {
+//        System.out.println("333333:userPrivGInfos is null");
       }
     }
   }

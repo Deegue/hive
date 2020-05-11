@@ -66,6 +66,13 @@ public class RequiredPrivileges {
       //you are an admin! You have all privileges, no missing privileges
       return missingPrivCapturer.getMissingPrivileges();
     }
+
+    if(availPrivs.privilegeGrantSet.contains(SQLPrivTypeGrant.OWNER_PRIV)){
+      //you are an owner! You have all privileges, no missing privileges
+//      System.out.println("SSSSSS:you are an owner, skip privilege check!");
+      return missingPrivCapturer.getMissingPrivileges();
+    }
+
     // check the mere mortals!
     for (SQLPrivTypeGrant requiredPriv : privilegeGrantSet) {
       if (!availPrivs.privilegeGrantSet.contains(requiredPriv)) {

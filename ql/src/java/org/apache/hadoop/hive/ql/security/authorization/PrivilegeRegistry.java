@@ -52,6 +52,8 @@ public class PrivilegeRegistry {
     Registry.put(Privilege.SELECT.getPriv(), Privilege.SELECT);
     Registry.put(Privilege.SHOW_DATABASE.getPriv(),
         Privilege.SHOW_DATABASE);
+//    Registry.put(Privilege.INSERT.getPriv(), Privilege.INSERT);
+//    Registry.put(Privilege.DELETE.getPriv(), Privilege.DELETE);
 
     //add the privileges not supported in V1
     //The list of privileges supported in V2 is implementation defined,

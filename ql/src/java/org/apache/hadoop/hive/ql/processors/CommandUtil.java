@@ -53,7 +53,26 @@ class CommandUtil {
       return null;
     }
 
-    if (ss.isAuthorizationModeV2() &&
+    boolean isAdmin = false;
+    try {
+//      System.out.println("SSSSSS:auth-CommandUtil");
+      String name;
+      name = ss.getAuthenticator().getUserName();
+//      System.out.println("SSSSSS:current session user name:" + name);
+      if (name != null &&
+        (name.toLowerCase().equals("dpedw") ||
+        name.toLowerCase().equals("root"))) {
+        isAdmin = true;
+//        System.out.println("SSSSSS:user:" + name + " is admin.");
+      } else {
+//        System.out.println("SSSSSS:user:" + name + " is not admin!");
+      }
+    } catch (Exception e) {
+//      System.out.println("SSSSSS:判断是否为超级管理员异常!!!");
+      e.printStackTrace();
+    }
+
+    if (!isAdmin && ss.isAuthorizationModeV2() &&
         HiveConf.getBoolVar(ss.getConf(), HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)) {
       String errMsg = "Error authorizing command " + command;
       try {

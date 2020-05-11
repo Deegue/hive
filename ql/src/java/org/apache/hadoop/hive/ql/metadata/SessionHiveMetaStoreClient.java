@@ -380,15 +380,18 @@ public class SessionHiveMetaStoreClient extends HiveMetaStoreClient implements I
   public PrincipalPrivilegeSet get_privilege_set(HiveObjectRef hiveObject,
       String userName, List<String> groupNames) throws MetaException,
       TException {
+//    System.out.println("SSSSSS===SessionClient-1:"+HiveObjectType.TABLE);
     // If caller is looking for temp table, handle here. Otherwise pass on to underlying client.
     if (hiveObject.getObjectType() == HiveObjectType.TABLE) {
       org.apache.hadoop.hive.metastore.api.Table table =
           getTempTable(hiveObject.getDbName(), hiveObject.getObjectName());
+//      System.out.println("SSSSSS===SessionClient-2:"+table);
       if (table != null) {
+//        System.out.println("SSSSSS===SessionClient-3:"+table.getPrivileges());
         return deepCopy(table.getPrivileges());
       }
     }
-
+//    System.out.println("SSSSSS===SessionClient-4:"+hiveObject.getDbName()+hiveObject.getObjectName()+hiveObject.getObjectType());
     return super.get_privilege_set(hiveObject, userName, groupNames);
   }
 

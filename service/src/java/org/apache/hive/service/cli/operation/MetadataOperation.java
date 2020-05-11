@@ -134,6 +134,25 @@ public abstract class MetadataOperation extends Operation {
   protected void authorizeMetaGets(HiveOperationType opType, List<HivePrivilegeObject> inpObjs,
       String cmdString) throws HiveSQLException {
     SessionState ss = SessionState.get();
+    boolean isAdmin = false;
+    try {
+//      System.out.println("SSSSSS:auth-MetadataOperation");
+      String name;
+      name = ss.getAuthenticator().getUserName();
+//      System.out.println("SSSSSS:current session user name:" + name);
+      if (name != null &&
+        (name.toLowerCase().equals("dpedw") ||
+        name.toLowerCase().equals("root"))) {
+//        System.out.println("SSSSSS:user:" + name + " is admin.");
+        return;
+      } else {
+//        System.out.println("SSSSSS:user:" + name + " is not admin!");
+      }
+    } catch (Exception e) {
+//      System.out.println("SSSSSS:判断是否为超级管理员异常!!!");
+      e.printStackTrace();
+    }
+
     HiveAuthzContext.Builder ctxBuilder = new HiveAuthzContext.Builder();
     ctxBuilder.setUserIpAddress(ss.getUserIpAddress());
     ctxBuilder.setForwardedAddresses(ss.getForwardedAddresses());
