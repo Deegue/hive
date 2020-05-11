@@ -57,6 +57,7 @@ import org.apache.hadoop.hive.ql.stats.fs.FSStatsAggregator;
 public class ExplainSemanticAnalyzer extends BaseSemanticAnalyzer {
   List<FieldSchema> fieldList;
   ExplainConfiguration config;
+  ParseContext pCtx = null;
 
   public ExplainSemanticAnalyzer(QueryState queryState) throws SemanticException {
     super(queryState);
@@ -178,7 +179,6 @@ public class ExplainSemanticAnalyzer extends BaseSemanticAnalyzer {
       fetchTask.getWork().initializeForFetch(ctx.getOpContext());
     }
 
-    ParseContext pCtx = null;
     if (sem instanceof SemanticAnalyzer) {
       pCtx = ((SemanticAnalyzer)sem).getParseContext();
     }
@@ -255,6 +255,11 @@ public class ExplainSemanticAnalyzer extends BaseSemanticAnalyzer {
       }
     }
     return opIdToRuntimeNumRows;
+  }
+
+  public ParseContext getParseContext() {
+//    System.out.println("SSSSSS:getParseContext(),pCtx:" + pCtx);
+    return pCtx;
   }
 
   @Override
