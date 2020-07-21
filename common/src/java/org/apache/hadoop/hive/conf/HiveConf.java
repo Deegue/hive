@@ -2950,6 +2950,7 @@ public class HiveConf extends Configuration {
         "hive.exec.temporary.table.storage", "default", new StringSet("memory",
          "ssd", "default"), "Define the storage policy for temporary tables." +
          "Choices between memory, ssd and default"),
+    HIVE_PRE_MR_JOB_SUBMIT_HOOKS("hive.pre.mr.job.submit.hooks", "", "Execute before submitting MR job."),
     HIVE_QUERY_LIFETIME_HOOKS("hive.query.lifetime.hooks", "",
         "A comma separated list of hooks which implement QueryLifeTimeHook. These will be triggered" +
             " before/after query compilation and before/after query execution, in the order specified." +
@@ -3111,7 +3112,7 @@ public class HiveConf extends Configuration {
         "If hive.server2.tez.initialize.default.sessions is enabled, the maximum number of\n" +
         "threads to use to initialize the default sessions."),
     HIVE_SERVER2_TEZ_SESSION_RESTRICTED_CONFIGS("hive.server2.tez.sessions.restricted.configs", "",
-    "The configuration settings that cannot be set when submitting jobs to HiveServer2. If\n" +
+    "The configuration settings that cannot be set when tting jobs to HiveServer2. If\n" +
     "any of these are set to values different from those in the server configuration, an\n" +
     "exception will be thrown."),
     HIVE_SERVER2_TEZ_SESSION_CUSTOM_QUEUE_ALLOWED("hive.server2.tez.sessions.custom.queue.allowed",

@@ -89,8 +89,10 @@ import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.history.HiveHistory.Keys;
 import org.apache.hadoop.hive.ql.hooks.Entity;
 import org.apache.hadoop.hive.ql.hooks.Entity.Type;
+import org.apache.hadoop.hive.ql.hooks.Hook;
 import org.apache.hadoop.hive.ql.hooks.HookContext;
 import org.apache.hadoop.hive.ql.hooks.HookUtils;
+import org.apache.hadoop.hive.ql.hooks.PreMRJobSubmitHook;
 import org.apache.hadoop.hive.ql.hooks.PrivateHookContext;
 import org.apache.hadoop.hive.ql.hooks.ReadEntity;
 import org.apache.hadoop.hive.ql.hooks.WriteEntity;
@@ -2660,6 +2662,26 @@ public class Driver implements IDriver {
   }
 
   /**
+   * Returns the hooks specified in a configuration variable.
+   *
+   * @param hookConfVar The configuration variable specifying a comma separated list of the hook
+   *                    class names.
+   * @param clazz       The super type of the hooks.
+   * @return            A list of the hooks cast as the type specified in clazz, in the order
+   *                    they are listed in the value of hookConfVar
+   * @throws Exception
+   */
+  private <T extends Hook> List<T> getHooks(ConfVars hookConfVar,
+                                            Class<T> clazz) throws Exception {
+    try {
+      return HookUtils.getHooks(conf, hookConfVar, clazz);
+    } catch (ClassNotFoundException e) {
+      console.printError(hookConfVar.varname + " Class not found:" + e.getMessage());
+      throw e;
+    }
+  }
+
+  /**
    * Launches a new task
    *
    * @param tsk
@@ -2685,6 +2707,17 @@ public class Driver implements IDriver {
         conf.set(MRJobConfig.JOB_NAME, jobname + " (" + tsk.getId() + ")");
       }
       conf.set(DagUtils.MAPREDUCE_WORKFLOW_NODE_NAME, tsk.getId());
+
+      try {
+        List<PreMRJobSubmitHook> preMRJobSubmitHooks = getHooks(ConfVars.HIVE_PRE_MR_JOB_SUBMIT_HOOKS, PreMRJobSubmitHook.class);
+        for (PreMRJobSubmitHook preMRJobSubmitHook : preMRJobSubmitHooks) {
+          preMRJobSubmitHook.execute(conf);
+        }
+      } catch (Exception e) {
+        System.out.println("SSSSSS:HIVE_PRE_MR_JOB_SUBMIT_HOOK throw exception.");
+        e.printStackTrace();
+      }
+
       Utilities.setWorkflowAdjacencies(conf, plan);
       cxt.incCurJobNo(1);
       console.printInfo("Launching Job " + cxt.getCurJobNo() + " out of " + jobs);
