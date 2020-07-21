@@ -1558,6 +1558,8 @@ public class HiveConf extends Configuration {
         "  Load into bucketed tables."),
     HIVE_LOAD_DATA_OWNER("hive.load.data.owner", "",
         "Set the owner of files loaded using load data in managed tables."),
+    HIVE_LOG_PRINT_SQL("hive.log.print.sql", false,
+            "Enabling printing SQLs on console."),
 
     @Deprecated
     HIVEMAPREDMODE("hive.mapred.mode", null,
@@ -4694,13 +4696,14 @@ public class HiveConf extends Configuration {
   }
 
   public void verifyAndSet(String name, String value) throws IllegalArgumentException {
-    if (modWhiteListPattern != null) {
-      Matcher wlMatcher = modWhiteListPattern.matcher(name);
-      if (!wlMatcher.matches()) {
-        throw new IllegalArgumentException("Cannot modify " + name + " at runtime. "
-            + "It is not in list of params that are allowed to be modified at runtime");
-      }
-    }
+    // SSSSSS forbid this feature
+//    if (modWhiteListPattern != null) {
+//      Matcher wlMatcher = modWhiteListPattern.matcher(name);
+//      if (!wlMatcher.matches()) {
+//        throw new IllegalArgumentException("Cannot modify " + name + " at runtime. "
+//            + "It is not in list of params that are allowed to be modified at runtime");
+//      }
+//    }
     if (Iterables.any(restrictList,
         restrictedVar -> name != null && name.startsWith(restrictedVar))) {
       throw new IllegalArgumentException("Cannot modify " + name + " at runtime. It is in the list"

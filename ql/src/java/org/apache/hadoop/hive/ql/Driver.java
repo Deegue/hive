@@ -556,6 +556,12 @@ public class Driver implements IDriver {
 
     LOG.info("Compiling command(queryId=" + queryId + "): " + queryStr);
 
+    boolean printSQL = conf.getBoolVar(HiveConf.ConfVars.HIVE_LOG_PRINT_SQL);
+    System.out.println("SSSSSS:print SQL:" + printSQL);
+    if (printSQL) {
+      console.printInfo("Compiling command(queryId=" + queryId + "): " + queryStr);
+    }
+
     conf.setQueryString(queryStr);
     // FIXME: sideeffect will leave the last query set at the session level
     if (SessionState.get() != null) {
