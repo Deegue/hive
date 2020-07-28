@@ -156,7 +156,7 @@ public class RetryingMetaStoreClient implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-    LOG.warn("SSSSSS:enter invoke");
+//    LOG.warn("SSSSSS:enter invoke");
 
     Object ret = null;
     int retriesMade = 0;
@@ -173,7 +173,7 @@ public class RetryingMetaStoreClient implements InvocationHandler {
       }
     }
 
-    LOG.warn("SSSSSS:invoke p1");
+//    LOG.warn("SSSSSS:invoke p1");
 
     for (int i = 0;;i++) {
       try {
@@ -210,9 +210,9 @@ public class RetryingMetaStoreClient implements InvocationHandler {
           }
         }
 
-        LOG.warn("SSSSSS:getMethodString(method):" + getMethodString(method));
-        LOG.warn("SSSSSS:base:" + base);
-        LOG.warn("SSSSSS:args:" + args);
+//        LOG.warn("SSSSSS:getMethodString(method):" + getMethodString(method));
+//        LOG.warn("SSSSSS:base:" + base);
+//        LOG.warn("SSSSSS:args:" + args);
         int maxTableNum = 0;
         if (args != null) {
           for (Object o : args) {
@@ -273,14 +273,14 @@ public class RetryingMetaStoreClient implements InvocationHandler {
         }
       }
 
-      LOG.warn("SSSSSS:invoke p2");
+//      LOG.warn("SSSSSS:invoke p2");
 
       if (retriesMade >= retryLimit || base.isLocalMetaStore() || !allowRetry) {
         throw caughtException;
       }
       retriesMade++;
 
-            LOG.warn("SSSSSS:invoke p3");
+//      LOG.warn("SSSSSS:invoke p3");
 
       LOG.warn("MetaStoreClient lost connection. Attempting to reconnect (" + retriesMade + " of " +
           retryLimit + ") after " + retryDelaySeconds + "s. " + method.getName(), caughtException);

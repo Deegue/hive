@@ -10115,7 +10115,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
           }
         }
       } catch (Exception e) {
-        LOG.error("SSSSSS:merge joins throw exceptions:");
+//        System.out.println("SSSSSS:merge joins throw exceptions:");
         e.printStackTrace();
       }
     }
@@ -10133,12 +10133,12 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         String key2 = joinTree.getExpressions().get(1).get(0).getChildren().get(0).getChildren().get(0).toString()
                 + "." + joinTree.getExpressions().get(1).get(0).getChildren().get(1);
         if (tableCol.get(key1) != tableCol.get(key2)) {
-          LOG.error("SSSSSS:tableCol.get(key1):" + tableCol.get(key1) + " is not match tableCol.get(key2):" + tableCol.get(key2));
+//          System.out.println("SSSSSS:tableCol.get(key1):" + tableCol.get(key1) + " is not match tableCol.get(key2):" + tableCol.get(key2));
           return;
         }
       }
     } catch (Exception e) {
-      LOG.error("SSSSSS:merge joins throw exceptions:");
+      System.out.println("SSSSSS:merge joins throw exceptions:");
       e.printStackTrace();
     }
 

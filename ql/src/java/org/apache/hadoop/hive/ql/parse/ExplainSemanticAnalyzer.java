@@ -258,7 +258,7 @@ public class ExplainSemanticAnalyzer extends BaseSemanticAnalyzer {
   }
 
   public ParseContext getParseContext() {
-    System.out.println("SSSSSS:getParseContext(),pCtx:" + pCtx);
+//    System.out.println("SSSSSS:getParseContext(),pCtx:" + pCtx);
     return pCtx;
   }
 

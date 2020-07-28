@@ -20,12 +20,7 @@ package org.apache.hadoop.hive.ql.exec;
 
 import junit.framework.Assert;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.ql.CommandNeedRetryException;
 import org.apache.hadoop.hive.ql.Driver;
-import org.apache.hadoop.hive.ql.QueryPlan;
-import org.apache.hadoop.hive.ql.hooks.ReadEntity;
-import org.apache.hadoop.hive.ql.parse.ColumnAccessInfo;
-import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.apache.hadoop.hive.ql.processors.CommandProcessorResponse;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.junit.AfterClass;
@@ -38,7 +33,7 @@ import java.util.*;
 public class TestMergeJoins {
 
   @BeforeClass
-  public static void Setup() throws CommandNeedRetryException {
+  public static void Setup() {
   }
 
   @AfterClass
@@ -50,7 +45,7 @@ public class TestMergeJoins {
   }
 
   @Test
-  public void testQueryTable1() throws CommandNeedRetryException, IOException {
+  public void testQueryTable1() throws IOException {
     Driver driver = createDriver();
     driver.run("create table test1(ida string)").getResponseCode();
     driver.run("insert into test1 select 'id-1000'").getResponseCode();
@@ -82,7 +77,6 @@ public class TestMergeJoins {
     conf.setBoolVar(HiveConf.ConfVars.HIVE_MERGE_NWAY_JOINS, true);
     SessionState.start(conf);
     Driver driver = new Driver(conf);
-    driver.init();
     return driver;
   }
 
