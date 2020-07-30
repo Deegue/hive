@@ -10107,40 +10107,66 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     List<QBJoinTree> trees = new ArrayList<QBJoinTree>();
     for (;tree != null; tree = tree.getJoinSrc()) {
       trees.add(tree);
-      try {
-        Map aliasToOpInfo = tree.getAliasToOpInfo();
-        for (String key : tree.getAliasToOpInfo().keySet()) {
-          for (ColumnInfo columnInfo : ((SelectOperator) aliasToOpInfo.get(key)).getSchema().getSignature()) {
-            tableCol.put(columnInfo.getTabAlias() + "." + columnInfo.getAlias(), columnInfo.getTypeName());
-          }
-        }
-      } catch (Exception e) {
+//      try {
+//        Map aliasToOpInfo = tree.getAliasToOpInfo();
+//        for (String key : tree.getAliasToOpInfo().keySet()) {
+//          for (ColumnInfo columnInfo : ((SelectOperator) aliasToOpInfo.get(key)).getSchema().getSignature()) {
+//            tableCol.put(columnInfo.getTabAlias() + "." + columnInfo.getAlias(), columnInfo.getTypeName());
+//          }
+//        }
+//      } catch (Exception e) {
 //        System.out.println("SSSSSS:merge joins throw exceptions:");
-        e.printStackTrace();
-      }
+//        e.printStackTrace();
+//      }
     }
 
-    try {
-      // both sides of the join should be the same type
-      for (QBJoinTree joinTree : trees) {
-        if (!(joinTree.getExpressions().size() == 2)
-                || !(joinTree.getExpressions().get(0).get(0).getChildren().size() == 2)
-                || !"TOK_TABLE_OR_COL".equals(joinTree.getExpressions().get(0).get(0).getChildren().get(0).toString())) {
-          break;
-        }
-        String key1 = joinTree.getExpressions().get(0).get(0).getChildren().get(0).getChildren().get(0).toString()
-                + "." + joinTree.getExpressions().get(0).get(0).getChildren().get(1);
-        String key2 = joinTree.getExpressions().get(1).get(0).getChildren().get(0).getChildren().get(0).toString()
-                + "." + joinTree.getExpressions().get(1).get(0).getChildren().get(1);
-        if (tableCol.get(key1) != tableCol.get(key2)) {
-//          System.out.println("SSSSSS:tableCol.get(key1):" + tableCol.get(key1) + " is not match tableCol.get(key2):" + tableCol.get(key2));
-          return;
-        }
-      }
-    } catch (Exception e) {
-      System.out.println("SSSSSS:merge joins throw exceptions:");
-      e.printStackTrace();
-    }
+//    try {
+//      // both sides of the join should be the same type
+//      for (QBJoinTree joinTree : trees) {
+//        if (joinTree.getExpressions() != null) {
+//          for (ArrayList<ASTNode> arr : joinTree.getExpressions()) {
+//            if (arr.size() == 0
+//                || arr.size() == 0
+//                || arr.get(0).getChildren() == null
+//                || arr.get(0).getChildren().size() == 0
+//                || arr.size() != 2
+//                || arr.get(0).getChildren().size() != 2
+//                || !"TOK_TABLE_OR_COL".equals(arr.get(0).getChildren().get(0).toString())) {
+////              System.out.println("SSSSSS:arr.size():" + arr.size());
+//              continue;
+//            }
+//            String key1 = arr.get(0).getChildren().get(0).getChildren().get(0).toString()
+//                    + "." + arr.get(0).getChildren().get(1);
+////            System.out.println("SSSSSS:key1:" + key1);
+//
+//            for (ArrayList<ASTNode> arr2 : joinTree.getExpressions()) {
+//              if (arr == arr2
+//                  || arr2.size() == 0
+//                  || arr2.size() == 0
+//                  || arr2.get(0).getChildren() == null
+//                  || arr2.get(0).getChildren().size() == 0
+//                  || arr2.size() != 2
+//                  || arr2.get(0).getChildren().size() != 2
+//                  || !"TOK_TABLE_OR_COL".equals(arr2.get(0).getChildren().get(0).toString())) {
+////                System.out.println("SSSSSS:arr2.size():" + arr2.size());
+//                continue;
+//              }
+//              String key2 = arr2.get(0).getChildren().get(0).getChildren().get(0).toString()
+//                      + "." + arr2.get(0).getChildren().get(1);
+////              System.out.println("SSSSSS:key1:" + key1 + ";key2:" + key2);
+////              System.out.println("SSSSSS:tableCol.get(key1):" + tableCol.get(key1) + " is not match tableCol.get(key2):" + tableCol.get(key2));
+//              if (tableCol.get(key1) != tableCol.get(key2)) {
+////                System.out.println("SSSSSS:return:tableCol.get(key1):" + tableCol.get(key1) + " is not match tableCol.get(key2):" + tableCol.get(key2));
+//                return;
+//              }
+//            }
+//          }
+//        }
+//      }
+//    } catch (Exception e) {
+//      System.out.println("SSSSSS:merge joins throw exceptions:");
+//      e.printStackTrace();
+//    }
 
     // merging from 'target'(inner) to 'node'(outer)
     boolean mergedQBJTree = false;
